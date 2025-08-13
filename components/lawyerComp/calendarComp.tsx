@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Utility function to get the number of days in a month
 const getDaysInMonth = (year: number, month: number) =>
@@ -139,17 +140,13 @@ const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
           hearing.date.getDate() === selectedDay.getDate()
       )
     : [];
-
+  const router = useRouter();
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen p-8 text-gray-900 dark:text-gray-100 font-sans">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-8">
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() =>
-              console.log(
-                "Back to dashboard not implemented in standalone app."
-              )
-            }
+            onClick={() => router.push("/dashboard")}
             className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 font-medium transition-colors duration-200"
           >
             <ArrowLeft size={20} className="mr-2" />
