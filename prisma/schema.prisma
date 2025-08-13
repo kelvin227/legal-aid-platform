@@ -1,0 +1,109 @@
+// schema.prisma
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // You can change this to "mysql", "sqlite", "mongodb", etc. but Do not change this as our server is currently using PostgreSQL.
+  url      = env("DATABASE_URL")
+}
+
+/// Represents a client user who signs up to find legal assistance.
+model User {
+  id       String @id @default(uuid()) // Unique identifier for the user (client)
+  email    String @unique // User's email address, must be unique and used for login
+  password String // Hashed password for secure authentication (NEVER store plain passwords)
+
+  // Personal Information
+  firstName   String? // Optional: Client's first name
+  lastName    String? // Optional: Client's last name
+  phoneNumber String? @unique // Optional: Client's phone number, unique for contact and verification
+
+  // Location Information (useful for finding local lawyers)
+  address String? // Optional: Client's street address
+  city    String? // Optional: Client's city
+  state   String? // Optional: Client's state/region (e.g., Lagos State)
+  zipCode String? // Optional: Client's zip or postal code
+
+  // Indigency Status Information (Core to the platform's purpose)
+  isIndigent          Boolean @default(true) // Indicates if the user self-identifies as indigent.
+  // Defaulting to true as the site's primary focus.
+  proofOfIndigencyUrl String? // Optional: URL to an uploaded document proving indigency (e.g., income statement, benefits letter).
+  // This might be an S3/Cloudinary URL.
+  isVerifiedIndigent  Boolean @default(false) // Flag set by an administrator after verifying the user's indigent status.
+  // This controls access to indigent-specific features.
+
+  // Account Status & Timestamps
+  isActive  Boolean  @default(true) // Allows deactivating accounts without deleting them
+  createdAt DateTime @default(now()) // Timestamp of when the user account was created
+  updatedAt DateTime @updatedAt // Timestamp of the last update to the user account
+  role      String   @default("client") // Role of the user, defaulting to "client". Could be "admin", "lawyer", etc.
+
+  // --- Example Relationships (Uncomment and define other models if needed) ---
+
+  // A user can create multiple legal cases/requests
+  // cases            Case[]
+
+  // A user might save specific lawyers they're interested in
+  // savedLawyers     SavedLawyer[] // (through a many-to-many join table or direct relation)
+
+  // A user might provide reviews for lawyers they've interacted with
+  // reviews          Review[]
+  Case Case[]
+}
+
+// Example of how you might define a 'Case' model (optional, for context)
+/**
+ */
+model Case {
+  id           String   @id @default(uuid())
+  caseNumber   String   @unique // Unique case number, if applicable  
+  userId       String
+  lawyerId     String? //the lawyer assigned to the case, if any
+  user         User     @relation(fields: [userId], references: [id])
+  title        String // e.g., "Eviction Assistance Needed"
+  description  String // Detailed description of their legal issue
+  caseType     String? // e.g., "Housing", "Family Law", "Criminal"
+  status       String   @default("Open") // e.g., "Open", "Assigned", "Closed"
+  documentsUrl String? // URL to uploaded case-related documents
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  court        Boolean  @default(false) // Indicates if the case leads to court
+
+  laywer       Lawyer?        @relation(fields: [lawyerId], references: [id])
+  CourtHearing CourtHearing[] // Related court hearings for this case
+}
+
+model CourtHearing {
+  id         String   @id @default(uuid())
+  caseNumber String
+  case       Case     @relation(fields: [caseNumber], references: [caseNumber])
+  date       DateTime // Date of the hearing
+  time       String // Time of the hearing (e.g., "10:00 AM")
+  location   String // Location of the hearing (e.g., "Lagos High Court")
+  type       String // Type of hearing (e.g., "Arraignment", "Preliminary Hearing", "Sentencing Hearing", "Motion Hearing", "Trial Hearing")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Lawyer {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  password        String
+  fullName        String?
+  phoneNumber     String?  @unique
+  nbaNumber       String?  @unique // Nigerian Bar Association number, unique for each lawyer
+  callToBarYear   Int? // Year the lawyer was called to the bar
+  stateOfCall     String? // State where the lawyer is registered to practice
+  profileImageUrl String? // URL to the lawyer's profile image
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships (optional, depending on your application needs)
+  Case Case[]
+}

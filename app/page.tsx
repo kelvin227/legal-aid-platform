@@ -1,8 +1,8 @@
-// app/page.tsx
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   Menu,
   X,
@@ -18,6 +18,8 @@ import {
   CalendarDays,
   Globe,
   Handshake,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,14 +29,91 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input"; // Just in case for future contact forms etc.
-import { Textarea } from "@/components/ui/textarea"; // Just in case for future contact forms etc.
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // You can add smooth scrolling later if needed, but for now,
-  // we'll just link to IDs on the page.
+  // Callback to update the state when the carousel scrolls or resizes
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi, setSelectedIndex]);
+
+  const onInit = useCallback((emblaApi: any) => {
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, []);
+
+  const onScroll = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onInit(emblaApi);
+    emblaApi.on("select", onSelect);
+    emblaApi.on("scroll", onScroll);
+    emblaApi.on("reInit", onInit);
+    emblaApi.on("reInit", onSelect);
+  }, [emblaApi, onInit, onScroll, onSelect]);
+
+  // Functions to handle carousel navigation
+  const scrollPrev = useCallback(
+    () => emblaApi && emblaApi.scrollPrev(),
+    [emblaApi]
+  );
+  const scrollNext = useCallback(
+    () => emblaApi && emblaApi.scrollNext(),
+    [emblaApi]
+  );
+
+  // Data for the feature cards, making it easy to add or remove features
+  const featureCards = [
+    {
+      icon: Users,
+      title: "Verified Pro Bono Network",
+      text: "Access a curated network of compassionate and experienced pro bono lawyers and paralegals committed to serving the indigent.",
+      color: "border-blue-500",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Secure Case Tracking",
+      text: "Track your case progress securely with updates sourced directly from court data or input from your legal counsel.",
+      color: "border-green-500",
+    },
+    {
+      icon: Smartphone,
+      title: "Mobile Accessibility",
+      text: "Our platform is flexible and can be accessed on any device, including your itel smartphone, ensuring you're always connected.",
+      color: "border-purple-500",
+    },
+    {
+      icon: MessageCircle,
+      title: "Direct Communication",
+      text: "Communicate directly and securely with your assigned legal representative within the app.",
+      color: "border-yellow-500",
+    },
+    {
+      icon: Globe,
+      title: "Multilingual Support",
+      text: "Supporting local languages like Hausa, Igbo, and Yoruba to ensure clarity and ease of use for all.",
+      color: "border-red-500",
+    },
+    {
+      icon: Handshake,
+      title: "NGO Integration (Bonus)",
+      text: "Seamless collaboration with key organizations like the Legal Aid Society, the Legal Services Corporation, and the Legal Defense and Assistance Project (LEDAP) in Nigeria.",
+      color: "border-orange-500",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -74,7 +153,7 @@ export default function LandingPage() {
             >
               Contact
             </Link>
-            <Link href="/app/login">
+            <Link href="/login">
               <Button variant="outline">Login / Dashboard</Button>
             </Link>
           </nav>
@@ -172,11 +251,11 @@ export default function LandingPage() {
         </div>
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 animate-fade-in-up">
-            Justice for All: Empowering Indigent Litigants in Nigeria
+            Justice for All: Where Indigent Litigants Through Probono Services
+            experience quality legal representation.
           </h1>
           <p className="text-lg md:text-xl mb-10 max-w-3xl mx-auto opacity-90 animate-fade-in-up delay-100">
-            Connecting indigent citizens with timely pro bono legal aid,
-            providing real-time case tracking, and delivering crucial alerts.
+            Affordable Justice made accessible by just about any Nigerian.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in-up delay-200">
             <Link href="/dashboard">
@@ -207,7 +286,7 @@ export default function LandingPage() {
       >
         <div className="container mx-auto px-4 max-w-4xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900 dark:text-gray-50">
-            The Hurdle to Justice in Nigeria
+            The Obstacles to an efficient justice system in Nigeria.
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="bg-white dark:bg-gray-900 shadow-md border-t-4 border-red-500">
@@ -337,94 +416,93 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Detailed Features Section */}
+      {/* Detailed Features Section - New Carousel Design */}
       <section
         id="features"
         className="py-16 md:py-24 bg-gray-50 dark:bg-gray-800"
       >
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 max-w-3xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900 dark:text-gray-50">
             Features Designed for You
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="shadow-md bg-white dark:bg-gray-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary">
-                  <Users className="h-6 w-6" />
-                  Verified Pro Bono Network
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-700 dark:text-gray-300">
-                Access a curated network of compassionate and experienced pro
-                bono lawyers and paralegals committed to serving the indigent.
-              </CardContent>
-            </Card>
+          <div className="relative">
+            <div className="embla" ref={emblaRef}>
+              <div className="embla__container flex -ml-4">
+                {featureCards.map((card, index) => (
+                  <div
+                    key={index}
+                    className="embla__slide flex-shrink-0 w-full px-4"
+                  >
+                    <Card
+                      className={`h-full border-2 transform hover:scale-105 transition-all duration-300 ease-in-out relative group ${card.color} shadow-lg dark:shadow-2xl dark:shadow-gray-700 bg-white dark:bg-gray-900`}
+                    >
+                      <div
+                        className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                        style={{
+                          backgroundImage: `linear-gradient(to right, ${
+                            card.color.split("-")[1] === "blue"
+                              ? "#3b82f6"
+                              : card.color.split("-")[1] === "green"
+                              ? "#22c55e"
+                              : card.color.split("-")[1] === "purple"
+                              ? "#a855f7"
+                              : card.color.split("-")[1] === "yellow"
+                              ? "#f59e0b"
+                              : card.color.split("-")[1] === "red"
+                              ? "#ef4444"
+                              : "#f97316"
+                          }, transparent)`,
+                        }}
+                      ></div>
+                      <CardHeader className="relative z-10">
+                        <CardTitle className="flex items-center gap-3 text-primary">
+                          <card.icon className="h-6 w-6" />
+                          {card.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-gray-700 dark:text-gray-300 relative z-10">
+                        {card.text}
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            <Card className="shadow-md bg-white dark:bg-gray-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary">
-                  <ShieldCheck className="h-6 w-6" />
-                  Secure Case Tracking
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-700 dark:text-gray-300">
-                Track your case progress securely with updates sourced directly
-                from court data or input from your legal counsel.
-              </CardContent>
-            </Card>
+            {/* Carousel Buttons */}
+            <Button
+              className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 p-2 rounded-full hidden md:block transition-all duration-300 hover:bg-blue-600 hover:text-white"
+              onClick={scrollPrev}
+              disabled={!canScrollPrev}
+              variant="secondary"
+              size="icon"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            <Button
+              className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 p-2 rounded-full hidden md:block transition-all duration-300 hover:bg-blue-600 hover:text-white"
+              onClick={scrollNext}
+              disabled={!canScrollNext}
+              variant="secondary"
+              size="icon"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          </div>
 
-            <Card className="shadow-md bg-white dark:bg-gray-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary">
-                  <Smartphone className="h-6 w-6" />
-                  Mobile Accessibility
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-700 dark:text-gray-300">
-                Our platform is designed to be mobile-first, ensuring you can
-                access crucial information anytime, anywhere, even with basic
-                smartphones.
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-md bg-white dark:bg-gray-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary">
-                  <MessageCircle className="h-6 w-6" />
-                  Direct Communication
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-700 dark:text-gray-300">
-                Communicate directly and securely with your assigned legal
-                representative within the app.
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-md bg-white dark:bg-gray-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary">
-                  <Globe className="h-6 w-6" />
-                  Multilingual Support
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-700 dark:text-gray-300">
-                Supporting local languages like Hausa, Igbo, and Yoruba to
-                ensure clarity and ease of use for all.
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-md bg-white dark:bg-gray-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary">
-                  <Handshake className="h-6 w-6" />
-                  NGO Integration (Bonus)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-gray-700 dark:text-gray-300">
-                Seamless integration with existing legal aid organizations to
-                streamline referrals and support.
-              </CardContent>
-            </Card>
+          {/* Carousel Dots */}
+          <div className="embla__dots flex justify-center mt-8">
+            {featureCards.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi?.scrollTo(index)}
+                className={`embla__dot w-3 h-3 mx-1 rounded-full transition-all duration-300 ${
+                  index === selectedIndex
+                    ? "bg-blue-600 w-8"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              ></button>
+            ))}
           </div>
         </div>
       </section>

@@ -38,7 +38,7 @@ const SigninformSchema = z.object({
   password: z.string().min(1, "Password is required"), // Basic validation for password presence
 });
 
-export default function LoginPage() {
+export default function LawyerLoginPage() {
   const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
   const [error, setError] = useState(""); // State for displaying login errors
   const [loading, setLoading] = useState(false); // State for loading indicator
