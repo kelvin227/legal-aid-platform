@@ -24,6 +24,7 @@ export default async function LawyerDashboard() {
       status: "assigned",
     },
   });
+
   const now = new Date();
   const sevenDaysLater = new Date();
   sevenDaysLater.setDate(now.getDate() + 7);
@@ -85,6 +86,7 @@ export default async function LawyerDashboard() {
       upcomingHearings={upcomingHearings as any}
       deadlineCount={deadlineCount}
       opencases={opencases}
+      email={fetchuser?.email as string}
     />
   );
 }

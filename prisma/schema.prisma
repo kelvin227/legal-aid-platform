@@ -76,6 +76,7 @@ model Case {
 
   laywer       Lawyer?        @relation(fields: [lawyerId], references: [id])
   CourtHearing CourtHearing[] // Related court hearings for this case
+  coverLetter  coverLetter[]
 }
 
 model CourtHearing {
@@ -105,5 +106,34 @@ model Lawyer {
   updatedAt       DateTime @updatedAt
 
   // Relationships (optional, depending on your application needs)
-  Case Case[]
+  Case        Case[]
+  Events      Events[] // Events related to the lawyer, such as court hearings or legal events
+  coverLetter coverLetter[]
+}
+
+model Events {
+  id        String   @id @default(uuid())
+  title     String
+  date      DateTime // Date of the event
+  startTime String // e.g., "10:00 AM"
+  location  String // e.g., "Lagos High Court"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Optional: You can link this event to a specific user or case if needed
+  userId String?
+  lawyer Lawyer? @relation(fields: [userId], references: [id])
+}
+
+model coverLetter {
+  id         String   @id @default(uuid())
+  caseNumber String // Unique case number this cover letter is associated with
+  lawyerId   String
+  content    String // Content of the cover letter
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  //relationships
+  case Case   @relation(fields: [caseNumber], references: [caseNumber])
+  user Lawyer @relation(fields: [lawyerId], references: [id])
 }

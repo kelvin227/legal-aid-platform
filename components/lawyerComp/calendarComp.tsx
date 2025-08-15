@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Briefcase, Calendar as CalendarIcon } from "lucide-react";
+import { createCourtHearing } from "@/actions/actions";
 import { useRouter } from "next/navigation";
 
 // Utility function to get the number of days in a month
@@ -64,10 +65,236 @@ const dummyUpcomingHearings = [
   },
 ];
 
+type AddEventFormProps = {
+  onCancel: () => void;
+  onSave: (eventData: {
+    title: string;
+    time: string;
+    location: string;
+    date: Date;
+  }) => void;
+  selectedDate: Date;
+};
+
+const AddEventForm = ({
+  onCancel,
+  onSave,
+  selectedDate,
+}: AddEventFormProps) => {
+  const [title, setTitle] = useState("");
+  const [time, setTime] = useState("");
+  const [location, setLocation] = useState("");
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    onSave({
+      title,
+      time,
+      location,
+      date: selectedDate,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+        <CalendarIcon size={20} className="mr-2 text-blue-500" />
+        Add New Event
+      </h4>
+      <div>
+        <label className="block text-sm font-medium mb-1">Event Title</label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Time</label>
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Location</label>
+        <input
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          required
+        />
+      </div>
+      <div className="flex justify-end space-x-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Save Event
+        </button>
+      </div>
+    </form>
+  );
+};
+
+type AddCourtHearingFormProps = {
+  onCancel: () => void;
+  onSave: (eventData: {
+    title: string;
+    time: string;
+    location: string;
+    date: Date;
+  }) => void;
+  selectedDate: Date;
+  cases: any;
+};
+
+const AddCourtHearingForm = ({
+  onCancel,
+  onSave,
+  selectedDate,
+  cases,
+}: AddCourtHearingFormProps) => {
+  const [caseNumber, setCaseNumber] = useState("");
+  const [hearingType, setHearingType] = useState("");
+  const [courtroom, setCourtroom] = useState("");
+  const [time, setTime] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const filteredCases = cases.filter((caseNumber: string) =>
+    caseNumber.toLowerCase().includes(caseNumber.toLowerCase())
+  );
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+    const result = await createCourtHearing(
+      caseNumber,
+      selectedDate,
+      time,
+      courtroom,
+      hearingType
+    );
+    if (result.success) {
+      onSave({
+        title: caseNumber,
+        time,
+        location: courtroom,
+        date: selectedDate,
+      });
+    } else {
+      console.error(result.message);
+      alert(result.message); // Show error message to the user
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+        <Briefcase size={20} className="mr-2 text-blue-500" />
+        Add Court Hearing
+      </h4>
+      <div className="relative">
+        <label className="block text-sm font-medium mb-1">Case number</label>
+        <input
+          type="text"
+          value={caseNumber}
+          onChange={(e) => setCaseNumber(e.target.value)}
+          onFocus={() => setShowSuggestions(true)}
+          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          required
+        />
+        {showSuggestions && (
+          <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg mt-1 max-h-40 overflow-y-auto">
+            {filteredCases.map((caseNumber: string) => (
+              <div
+                key={caseNumber}
+                onMouseDown={() => {
+                  setCaseNumber(caseNumber);
+                  setShowSuggestions(false);
+                }}
+                className="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {caseNumber}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Hearing Type</label>
+        <input
+          type="text"
+          value={hearingType}
+          onChange={(e) => setHearingType(e.target.value)}
+          className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Courtroom</label>
+        <input
+          type="text"
+          value={courtroom}
+          onChange={(e) => setCourtroom(e.target.value)}
+          className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Time</label>
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+          required
+        />
+      </div>
+      <div className="flex justify-end space-x-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Save Hearing
+        </button>
+      </div>
+    </form>
+  );
+};
+
 // The CalendarPage component
-const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
+const CalendarPage = ({
+  upcomingHearings,
+  cases,
+}: {
+  upcomingHearings: any;
+  cases: any;
+}) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [formType, setFormType] = useState<string | null>(null); // State to manage which form to show
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -82,7 +309,6 @@ const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
 
   // Add days of the month with events
   for (let i = 1; i <= daysInMonth; i++) {
-    const dayDate = new Date(year, month, i);
     const hearingsOnDay = upcomingHearings.filter(
       (hearing: any) =>
         hearing.date.getFullYear() === year &&
@@ -99,7 +325,10 @@ const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
     days.push(
       <div
         key={`day-${i}`}
-        onClick={() => setSelectedDay(new Date(year, month, i))}
+        onClick={() => {
+          setSelectedDay(new Date(year, month, i));
+          setFormType(null); // Reset form when a new day is selected
+        }}
         className={`p-2 border border-gray-200 dark:border-gray-700 rounded-lg h-28 flex flex-col items-start cursor-pointer transition-colors duration-150 ${
           isSelected
             ? "bg-blue-200 dark:bg-blue-700"
@@ -124,11 +353,13 @@ const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
 
   const handlePrevMonth = () => {
     setSelectedDay(null); // Clear selected day when changing months
+    setFormType(null);
     setCurrentDate(new Date(year, month - 1, 1));
   };
 
   const handleNextMonth = () => {
     setSelectedDay(null); // Clear selected day when changing months
+    setFormType(null);
     setCurrentDate(new Date(year, month + 1, 1));
   };
 
@@ -140,7 +371,15 @@ const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
           hearing.date.getDate() === selectedDay.getDate()
       )
     : [];
+
+  const handleSave = (eventData: any) => {
+    console.log("Saving new event:", eventData);
+    setFormType(null); // Close the form after saving
+    // In a real app, you would add this to the list of hearings and persist it.
+  };
+
   const router = useRouter();
+
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen p-8 text-gray-900 dark:text-gray-100 font-sans">
       <div className="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-8">
@@ -206,28 +445,62 @@ const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
                 </div>
               </button>
             </div>
-            {selectedDayHearings.length > 0 ? (
-              <ul className="space-y-4">
-                {selectedDayHearings.map((hearing: any) => (
-                  <li
-                    key={hearing.id}
-                    className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"
-                  >
-                    <p className="text-lg font-semibold">{hearing.title}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Time:</span> {hearing.time}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Location:</span>{" "}
-                      {hearing.location}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+
+            {/* Conditional rendering for forms or event list */}
+            {formType === "addEvent" ? (
+              <AddEventForm
+                onCancel={() => setFormType(null)}
+                onSave={handleSave}
+                selectedDate={selectedDay}
+              />
+            ) : formType === "addCourtHearing" ? (
+              <AddCourtHearingForm
+                onCancel={() => setFormType(null)}
+                onSave={handleSave}
+                selectedDate={selectedDay}
+                cases={cases}
+              />
             ) : (
-              <p className="text-center text-lg text-gray-500 dark:text-gray-400">
-                No events available on this day.
-              </p>
+              <>
+                <div className="flex space-x-4 mb-4">
+                  <button
+                    onClick={() => setFormType("addEvent")}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Add Event
+                  </button>
+                  <button
+                    onClick={() => setFormType("addCourtHearing")}
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Add Court Hearing
+                  </button>
+                </div>
+                {selectedDayHearings.length > 0 ? (
+                  <ul className="space-y-4">
+                    {selectedDayHearings.map((hearing: any) => (
+                      <li
+                        key={hearing.id}
+                        className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"
+                      >
+                        <p className="text-lg font-semibold">{hearing.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Time:</span>{" "}
+                          {hearing.time}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Location:</span>{" "}
+                          {hearing.location}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-center text-lg text-gray-500 dark:text-gray-400">
+                    No events available on this day.
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}
@@ -236,6 +509,4 @@ const CalendarPage = ({ upcomingHearings }: { upcomingHearings: any }) => {
   );
 };
 
-export default function App() {
-  return <CalendarPage upcomingHearings={dummyUpcomingHearings} />;
-}
+export default CalendarPage;

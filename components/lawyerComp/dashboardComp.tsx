@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   BriefcaseMedical, // New icon for the application form
 } from "lucide-react";
+import { SubmitCv } from "@/actions/actions";
 
 // The ApplyForCaseForm component
 // This component displays a form for a lawyer to apply for an open case.
@@ -21,22 +22,25 @@ const ApplyForCaseForm = ({
   caseData,
   onCancel,
   onSubmit,
+  email,
 }: {
   caseData: any;
   onCancel: any;
   onSubmit: any;
+  email: string;
 }) => {
   const [message, setMessage] = useState("");
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     // In a real application, you would send this data to a backend.
-    console.log(
-      `Applying for case "${caseData.title}" with message: "${message}"`
-    );
-    onSubmit({ message });
+    const apply = await SubmitCv(email, caseData.caseNumber, message);
+    if (apply.success) {
+      alert(apply.message);
+    } else {
+      alert("Failed to apply for the case: " + apply.message);
+    }
   };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8">
       {/* Back button to return to the case detail view */}
@@ -157,7 +161,13 @@ const CaseDetailView = ({
         {isOpencase && (
           <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
             <span className="font-semibold w-32">Posted:</span>
-            <span>{caseData.datePosted}</span>
+            <span>
+              {new Date(caseData.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </div>
         )}
         {caseData.user && (
@@ -181,6 +191,7 @@ const App = ({
   upcomingHearings,
   deadlineCount,
   opencases,
+  email,
 }: {
   assignedCases: any[];
   assignedcasecount: number;
@@ -188,6 +199,7 @@ const App = ({
   upcomingHearings: any[];
   deadlineCount: number;
   opencases: any[];
+  email: string;
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
@@ -327,6 +339,7 @@ const App = ({
             caseData={selectedCase}
             onCancel={handleCancelApplication}
             onSubmit={handleSubmitApplication}
+            email={email}
           />
         ) : selectedCase ? (
           <CaseDetailView
@@ -393,7 +406,16 @@ const App = ({
                             caseItem.user.lastName) as string
                         }
                       </span>
-                      <span>{caseItem.datePosted}</span>
+                      <span>
+                        {new Date(caseItem.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          }
+                        )}
+                      </span>
                     </div>
                     <button
                       onClick={() => handleViewCase(caseItem)}

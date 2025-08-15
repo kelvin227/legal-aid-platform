@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useState, useEffect } from "react"; // Import useEffect for message timeout
+import { useState, useEffect } from "react";
 import {
   Bell,
   Calendar,
@@ -11,7 +11,13 @@ import {
   Users,
   Menu,
   Cog,
-  Power, // Import the Menu icon
+  Power,
+  ArrowLeft,
+  User,
+  Briefcase,
+  Mail,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Import Sheet components
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +55,8 @@ interface CaseType {
   lawyer: string;
   updatedAt: string;
   nextAction: string;
-  createdAt?: string; // Add createdAt as it's used in the code
+  createdAt?: string;
+  description?: string; // Add description to the CaseType
 }
 
 interface HearingType {
@@ -60,6 +67,86 @@ interface HearingType {
   location: string;
   type: string;
 }
+
+/** Dummy applicant types & data (no schema changes, purely for UI) */
+interface ApplicantJob {
+  title: string;
+  company: string;
+  years: string;
+}
+interface ApplicantProfile {
+  email: string;
+  phone: string;
+  location: string;
+  bio: string;
+  recentJobs: ApplicantJob[];
+}
+interface Applicant {
+  id: number;
+  name: string;
+  avatar: string;
+  shortDescription: string;
+  coverLetterSummary: string;
+  profile: ApplicantProfile;
+}
+const mockApplicants: Applicant[] = [
+  {
+    id: 1,
+    name: "Jane Doe",
+    avatar: "https://placehold.co/64x64/1e40af/ffffff?text=JD",
+    shortDescription:
+      "Experienced paralegal with 5+ years in housing & tenant rights.",
+    coverLetterSummary:
+      "I've supported over 120 housing disputes and excel at evidence prep and client comms...",
+    profile: {
+      email: "jane.doe@example.com",
+      phone: "+1 555 987 6543",
+      location: "New York, USA",
+      bio: "Detail-oriented paralegal focused on property disputes, unlawful detainers, and mediation support.",
+      recentJobs: [
+        {
+          title: "Housing Paralegal",
+          company: "Legal Aid Org",
+          years: "2022 – Present",
+        },
+        {
+          title: "Legal Assistant",
+          company: "Smith & Co.",
+          years: "2020 – 2022",
+        },
+        { title: "Intern", company: "NYC Legal Dept.", years: "2019 – 2020" },
+      ],
+    },
+  },
+  {
+    id: 2,
+    name: "John Smith",
+    avatar: "https://placehold.co/64x64/16a34a/ffffff?text=JS",
+    shortDescription:
+      "Recent law grad with clerkship experience in employment law.",
+    coverLetterSummary:
+      "As a clerk I drafted motions and did discovery reviews; I’m eager to contribute immediately...",
+    profile: {
+      email: "john.smith@example.com",
+      phone: "+1 555 123 4567",
+      location: "Los Angeles, USA",
+      bio: "Early career legal professional passionate about advocacy and research-heavy matters.",
+      recentJobs: [
+        {
+          title: "Law Clerk (Intern)",
+          company: "Westside Legal",
+          years: "2024",
+        },
+        { title: "Legal Volunteer", company: "Justice4All", years: "2023" },
+        {
+          title: "Research Assistant",
+          company: "UCLA Law",
+          years: "2022 – 2023",
+        },
+      ],
+    },
+  },
+];
 
 const DashboardComp = ({
   userid,
@@ -78,6 +165,10 @@ const DashboardComp = ({
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedCase, setSelectedCase] = useState<CaseType | null>(null);
+
+  /** When user clicks "View Applicant" from the list, open CaseDetails directly on Applicants view */
+  const [openApplicantsOnLoad, setOpenApplicantsOnLoad] = useState(false);
 
   // State for the new case creation form
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -102,8 +193,10 @@ const DashboardComp = ({
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Close mobile menu when a tab is selected
     setIsMobileMenuOpen(false);
+    // Reset selected case when changing tabs
+    setSelectedCase(null);
+    setOpenApplicantsOnLoad(false);
   };
 
   const handleCreateCase = async () => {
@@ -119,11 +212,10 @@ const DashboardComp = ({
       );
       if (response.success) {
         setMessage({ text: response.message, type: "success" });
-        // Reset form fields
         setCaseTitle("");
         setCaseDescription("");
         setCaseType("Housing");
-        setIsFormOpen(false); // Close the form on success
+        setIsFormOpen(false);
       } else {
         setMessage({ text: response.message, type: "error" });
       }
@@ -199,13 +291,280 @@ const DashboardComp = ({
     },
   ];
 
+  /**
+   * CaseDetails now supports internal views:
+   * - "details" (original)
+   * - "applicants" (list with short description + cover-letter summary)
+   * - "profile" (single applicant full profile + top 3 recent jobs)
+   * Uses ONLY dummy data for applicants; your schema remains unchanged.
+   */
+  const CaseDetails = ({
+    case_,
+    openApplicantsOnLoad = false,
+    onConsumeOpenApplicantsFlag,
+  }: {
+    case_: CaseType;
+    openApplicantsOnLoad?: boolean;
+    onConsumeOpenApplicantsFlag?: () => void;
+  }) => {
+    const [view, setView] = useState<"details" | "applicants" | "profile">(
+      "details"
+    );
+    const [selectedApplicant, setSelectedApplicant] =
+      useState<Applicant | null>(null);
+
+    useEffect(() => {
+      if (openApplicantsOnLoad) {
+        setView("applicants");
+        onConsumeOpenApplicantsFlag?.();
+      }
+    }, [openApplicantsOnLoad, onConsumeOpenApplicantsFlag]);
+
+    /** Sub-component: Applicant List */
+    const ApplicantList = () => (
+      <div className="space-y-4">
+        <Button
+          variant="ghost"
+          onClick={() => setView("details")}
+          className="mb-1"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Case
+        </Button>
+
+        <h3 className="text-lg font-semibold">Applicants</h3>
+        {mockApplicants.map((applicant) => (
+          <Card key={applicant.id} className="rounded-lg shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={applicant.avatar} alt={applicant.name} />
+                    <AvatarFallback>
+                      {applicant.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{applicant.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {applicant.shortDescription}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 text-sm">
+                <p className="text-gray-600 dark:text-gray-400 font-medium">
+                  Cover Letter
+                </p>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {applicant.coverLetterSummary}
+                </p>
+              </div>
+
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  className="rounded-lg"
+                  onClick={() => {
+                    setSelectedApplicant(applicant);
+                    setView("profile");
+                  }}
+                >
+                  View Applicant Info
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+
+    /** Sub-component: Applicant Profile (with top 3 recent jobs) */
+    const ApplicantProfile = ({ applicant }: { applicant: Applicant }) => (
+      <div className="space-y-4">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setSelectedApplicant(null);
+            setView("applicants");
+          }}
+          className="mb-1"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Applicants
+        </Button>
+
+        <Card className="rounded-lg shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={applicant.avatar} alt={applicant.name} />
+                <AvatarFallback>
+                  {applicant.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-xl">{applicant.name}</CardTitle>
+                <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {applicant.profile.location}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                <span>{applicant.profile.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <span>{applicant.profile.phone}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>Applicant</span>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-gray-600 dark:text-gray-400 font-medium mb-1">
+                About
+              </p>
+              <p className="text-gray-700 dark:text-gray-300">
+                {applicant.profile.bio}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Top 3 Recent Jobs
+              </p>
+              <ul className="space-y-2">
+                {applicant.profile.recentJobs.slice(0, 3).map((job, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-start justify-between p-3 border rounded-lg dark:border-gray-700"
+                  >
+                    <div>
+                      <p className="font-medium">{job.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {job.company}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {job.years}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+
+    /** Render by view */
+    if (view === "applicants") return <ApplicantList />;
+    if (view === "profile" && selectedApplicant)
+      return <ApplicantProfile applicant={selectedApplicant} />;
+
+    // Default: original case details view
+    return (
+      <div className="space-y-4">
+        <Button
+          variant="ghost"
+          onClick={() => setSelectedCase(null)}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to My Cases
+        </Button>
+
+        <Card className="rounded-lg shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">
+              {case_.title}
+            </CardTitle>
+            <div className="flex items-center justify-between mt-2">
+              <Badge
+                variant={case_.status === "open" ? "default" : "secondary"}
+                className={`${
+                  case_.status === "open"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 dark:bg-gray-700"
+                }`}
+              >
+                {case_.status}
+              </Badge>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Case Number: **{case_.caseNumber}**
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <p>
+              <span className="font-medium">Description:</span>
+              <br />
+              {case_.description || "No description provided."}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-600 dark:text-gray-400">Lawyer:</p>
+                <p className="font-medium">{case_.lawyer}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Last Updated:
+                </p>
+                <p>{new Date(case_.updatedAt).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 dark:text-gray-400">Next Action:</p>
+                <p className="font-medium">
+                  {new Date(case_.nextAction).toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              {case_.status === "open" ? (
+                <Button
+                  size="sm"
+                  className="flex-1 rounded-lg"
+                  onClick={() => setView("applicants")}
+                >
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  View Applicant
+                </Button>
+              ) : (
+                <Button size="sm" className="flex-1 rounded-lg">
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  Message Lawyer
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-inter">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* Hamburger menu for small screens */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
@@ -223,8 +582,6 @@ const DashboardComp = ({
                     <h1 className="text-lg font-semibold">LegalAid Connect</h1>
                   </div>
                 </div>
-
-                {/* Mobile Navigation Tabs */}
                 <Tabs
                   value={activeTab}
                   onValueChange={handleTabChange}
@@ -544,87 +901,116 @@ const DashboardComp = ({
               </div>
             </TabsContent>
 
-            {/* Cases Tab */}
+            {/* Cases Tab - Conditional Rendering */}
             <TabsContent value="cases" className="space-y-4">
               <h2 className="text-xl font-semibold mb-4">My Cases</h2>
 
-              <div className="space-y-4">
-                {Case.length > 0 ? (
-                  Case.map((case_: CaseType) => (
-                    <Card key={case_.id} className="rounded-lg shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-medium">{case_.title}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {case_.caseNumber}
-                            </p>
+              {selectedCase ? (
+                // Show Case Details component if a case is selected
+                <CaseDetails
+                  case_={selectedCase}
+                  openApplicantsOnLoad={openApplicantsOnLoad}
+                  onConsumeOpenApplicantsFlag={() =>
+                    setOpenApplicantsOnLoad(false)
+                  }
+                />
+              ) : (
+                // Show the list of cases
+                <div className="space-y-4">
+                  {Case.length > 0 ? (
+                    Case.map((case_: CaseType) => (
+                      <Card key={case_.id} className="rounded-lg shadow-sm">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="font-medium">{case_.title}</h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {case_.caseNumber}
+                              </p>
+                            </div>
+                            <Badge
+                              variant={
+                                case_.status === "open"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className={`${
+                                case_.status === "open"
+                                  ? "bg-blue-500 text-white"
+                                  : "bg-gray-100 dark:bg-gray-700"
+                              }`}
+                            >
+                              {case_.status}
+                            </Badge>
                           </div>
-                          <Badge
-                            variant={
-                              case_.status === "open" ? "default" : "secondary"
-                            }
-                            className={`${
-                              case_.status === "open"
-                                ? "bg-blue-500 text-white"
-                                : "bg-gray-100 dark:bg-gray-700"
-                            }`}
-                          >
-                            {case_.status}
-                          </Badge>
-                        </div>
 
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">
-                              Lawyer:
-                            </span>
-                            <span>{case_.lawyer}</span>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">
+                                Lawyer:
+                              </span>
+                              <span>{case_.lawyer}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">
+                                Last Update:
+                              </span>
+                              <span>
+                                {new Date(case_.updatedAt).toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">
+                                Next Action:
+                              </span>
+                              <span className="font-medium">
+                                {new Date(case_.nextAction).toLocaleString()}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">
-                              Last Update:
-                            </span>
-                            <span>
-                              {new Date(case_.updatedAt).toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600 dark:text-gray-400">
-                              Next Action:
-                            </span>
-                            <span className="font-medium">
-                              {new Date(case_.nextAction).toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
 
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="flex-1 bg-transparent rounded-lg"
-                          >
-                            View Details
-                          </Button>
-                          {case_.status === "assigned" ? (
-                            <Button size="sm" className="flex-1 rounded-lg">
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              Message Lawyer
+                          <div className="flex gap-2 mt-4">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 bg-transparent rounded-lg"
+                              onClick={() => {
+                                setSelectedCase(case_); // show details
+                                setOpenApplicantsOnLoad(false);
+                              }}
+                            >
+                              View Details
                             </Button>
-                          ) : (
-                            ""
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-                    No available active cases.
-                  </div>
-                )}
-              </div>
+                            {/* Conditional Button */}
+                            {case_.status === "open" ? (
+                              <Button
+                                size="sm"
+                                className="flex-1 rounded-lg"
+                                onClick={() => {
+                                  setSelectedCase(case_);
+                                  setOpenApplicantsOnLoad(true); // jump straight to Applicants view
+                                }}
+                              >
+                                <MessageCircle className="h-4 w-4 mr-1" />
+                                View Applicant
+                              </Button>
+                            ) : (
+                              <Button size="sm" className="flex-1 rounded-lg">
+                                <MessageCircle className="h-4 w-4 mr-1" />
+                                Message Lawyer
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+                      No available active cases.
+                    </div>
+                  )}
+                </div>
+              )}
             </TabsContent>
 
             {/* Notifications Tab */}
