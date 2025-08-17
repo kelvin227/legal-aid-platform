@@ -109,6 +109,9 @@ export async function lawyerSignUp(email:string, password:string, fullName: stri
                 nbaNumber,
                 callToBarYear: parseInt(callToBarYear, 10),
                 stateOfCall,
+                location,
+                specialization,
+                Bio,
             }
         })
         return {success: true, message: "User created successfully"}

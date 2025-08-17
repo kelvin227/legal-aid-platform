@@ -46,7 +46,14 @@ const providers = [
                 console.error("User creation failed")
                 return null
             }
+            } else{
+                 const isMatch = bcrypt.compareSync(password, lawyer.password)
+            if (!isMatch){
+                return null
             }
+            return lawyer
+            }
+
             
         } else {
             const isMatch = bcrypt.compareSync(password, user.password)
