@@ -51,9 +51,9 @@ const providers = [
             if (!isMatch){
                 return null
             }
-            return lawyer
+            
             }
-
+            return lawyer
             
         } else {
             const isMatch = bcrypt.compareSync(password, user.password)
