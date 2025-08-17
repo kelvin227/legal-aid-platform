@@ -66,7 +66,6 @@ export default function LoginPage() {
 
       if (response.success) {
         toast.success(response.message || "Login successful!");
-        router.replace("/dashboard"); // Redirect to dashboard on success
       } else {
         setError(
           response.message || "Login failed. Please check your credentials."
