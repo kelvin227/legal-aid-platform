@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth"
 import { stripAppSubdomain } from "./lib/utils";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/register", "signin"];
+const PUBLIC_PATHS = ["/login", "/signup", "/register", "/signin"];
 export default auth(async (req) => {
 
     const hostname = req.headers.get('host')!;
@@ -41,7 +41,7 @@ export default auth(async (req) => {
         case "web-lap":
         //    case "web":
                 {
-                    const PROTECTED_PATHS = ["/dashboard", "/client"]; //add all exact protected paths here
+                    const PROTECTED_PATHS = ["/dashboard", "/client", "/calendar", "/documents"]; //add all exact protected paths here
                     const isProtectedPath = PROTECTED_PATHS.includes(pathname);
                     const isLoggedin = req.auth;
                     if(!isLoggedin && isProtectedPath){
@@ -52,7 +52,7 @@ export default auth(async (req) => {
         case "admin-lap":
         //case "admin":
             {
-                const PROTECTED_PATHS = ["/", "/profile", "/settings", "/checkout", "/orders"]; // Add all your exact protected paths here
+                const PROTECTED_PATHS = ["/profile", "/settings", "/checkout", "/orders"]; // Add all your exact protected paths here
                 const isProtectedPath = PROTECTED_PATHS.includes(pathname);
                 const isLoggedin = req.auth
                 if (!isLoggedin && isProtectedPath) {
