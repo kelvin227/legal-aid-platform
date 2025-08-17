@@ -24,7 +24,7 @@ export async function Login(email:string, password:string){
             await signIn("credentials", {
                 email: email,
                 password: password,
-                redirectTo: "/dashboard", // Redirect to dashboard after sign in
+                redirect: false, // Redirect to the default NextAuth.js page after sign in
             })
         return {success: true, message: "Sign in successfully"}
         }
@@ -35,7 +35,7 @@ export async function Login(email:string, password:string){
             await signIn("credentials", {
                 email: email,
                 password: password,
-                redirectTo: "/dashboard", // Redirect to dashboard after sign in
+               redirect: false, // Redirect to the default NextAuth.js page after sign in
             })
         return {success: true, message: "Sign in successfully"}
     } catch (error) {
