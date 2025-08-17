@@ -58,6 +58,16 @@ export default async function LawyerDashboard() {
       createdAt: "desc",
     },
     take: 3, // Limit to 3 most recent cases
+    include: {
+      user: true, // Include user details
+      CourtHearing: {
+        orderBy: {
+          date: "asc",
+        },
+        take: 1, // Get the next hearing for each case
+      },
+      laywer: true, // Include lawyer details
+    },
   });
 
   const opencases = await prisma.case.findMany({

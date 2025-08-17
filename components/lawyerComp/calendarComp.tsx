@@ -12,59 +12,6 @@ const getDaysInMonth = (year: number, month: number) =>
 const getFirstDayOfMonth = (year: number, month: number) =>
   new Date(year, month, 1).getDay();
 
-// Dummy data for upcoming hearings, with more varied dates
-const dummyUpcomingHearings = [
-  {
-    id: 1,
-    title: "Doe vs. Smith Hearing",
-    date: new Date(2025, 7, 10),
-    time: "10:00 AM",
-    location: "Courtroom 3B",
-  },
-  {
-    id: 2,
-    title: "Jones vs. Miller Deposition",
-    date: new Date(2025, 7, 15),
-    time: "2:00 PM",
-    location: "Conference Room A",
-  },
-  {
-    id: 3,
-    title: "Case Review with Partner",
-    date: new Date(2025, 7, 15),
-    time: "3:30 PM",
-    location: "Partner's Office",
-  },
-  {
-    id: 4,
-    title: "Client Consultation",
-    date: new Date(2025, 7, 22),
-    time: "9:00 AM",
-    location: "Zoom Call",
-  },
-  {
-    id: 5,
-    title: "File Deadline",
-    date: new Date(2025, 8, 5),
-    time: "5:00 PM",
-    location: "N/A",
-  },
-  {
-    id: 6,
-    title: "Johnson vs. Williams Trial",
-    date: new Date(2025, 8, 18),
-    time: "9:30 AM",
-    location: "Courtroom 7",
-  },
-  {
-    id: 7,
-    title: "Team Meeting",
-    date: new Date(2025, 8, 20),
-    time: "1:00 PM",
-    location: "Virtual",
-  },
-];
-
 type AddEventFormProps = {
   onCancel: () => void;
   onSave: (eventData: {
@@ -159,7 +106,7 @@ type AddCourtHearingFormProps = {
     date: Date;
   }) => void;
   selectedDate: Date;
-  cases: any;
+  cases: any[]; // changed to accept an array
 };
 
 const AddCourtHearingForm = ({
@@ -174,8 +121,18 @@ const AddCourtHearingForm = ({
   const [time, setTime] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const filteredCases = cases.filter((caseNumber: string) =>
-    caseNumber.toLowerCase().includes(caseNumber.toLowerCase())
+  // Normalize incoming cases into an array of strings (case numbers)
+  const caseSuggestions: string[] = Array.isArray(cases)
+    ? cases.map((c: any) =>
+        typeof c === "string"
+          ? c
+          : // try common fields, fallback to JSON
+            (c.caseNumber as string) ?? (c.title as string) ?? JSON.stringify(c)
+      )
+    : [];
+
+  const filteredCases = caseSuggestions.filter((cn) =>
+    cn.toLowerCase().includes(caseNumber.toLowerCase())
   );
 
   const handleSubmit = async (e: any) => {
@@ -218,18 +175,18 @@ const AddCourtHearingForm = ({
           className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
           required
         />
-        {showSuggestions && (
+        {showSuggestions && filteredCases.length > 0 && (
           <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg mt-1 max-h-40 overflow-y-auto">
-            {filteredCases.map((caseNumber: string) => (
+            {filteredCases.map((suggestion) => (
               <div
-                key={caseNumber}
+                key={suggestion}
                 onMouseDown={() => {
-                  setCaseNumber(caseNumber);
+                  setCaseNumber(suggestion);
                   setShowSuggestions(false);
                 }}
                 className="p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
               >
-                {caseNumber}
+                {suggestion}
               </div>
             ))}
           </div>
@@ -290,7 +247,7 @@ const CalendarPage = ({
   cases,
 }: {
   upcomingHearings: any;
-  cases: any;
+  cases: any[]; // changed to accept array of case objects or strings
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -341,9 +298,9 @@ const CalendarPage = ({
             <div
               key={hearing.id}
               className="bg-blue-500 text-white text-xs font-medium rounded-md px-2 py-1 truncate"
-              title={`${hearing.title} at ${hearing.time}`}
+              title={`${hearing.type} at ${hearing.time}`}
             >
-              {hearing.title}
+              {hearing.type}
             </div>
           ))}
         </div>
@@ -458,7 +415,7 @@ const CalendarPage = ({
                 onCancel={() => setFormType(null)}
                 onSave={handleSave}
                 selectedDate={selectedDay}
-                cases={cases}
+                cases={cases} // now passes the array through
               />
             ) : (
               <>
@@ -483,7 +440,7 @@ const CalendarPage = ({
                         key={hearing.id}
                         className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow"
                       >
-                        <p className="text-lg font-semibold">{hearing.title}</p>
+                        <p className="text-lg font-semibold">{hearing.type}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           <span className="font-medium">Time:</span>{" "}
                           {hearing.time}

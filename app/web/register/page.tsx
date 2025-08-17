@@ -98,6 +98,17 @@ const nigerianStates = [
   "Zamfara",
 ].sort();
 
+// Add specialization options
+const specializations = [
+  "Family Law",
+  "Criminal Law",
+  "Civil Litigation",
+  "Property Law",
+  "Corporate Law",
+  "Human Rights",
+  "Other",
+];
+
 // Define the Zod schema for the entire form
 const formSchema = z
   .object({
@@ -112,16 +123,11 @@ const formSchema = z
       .string()
       .min(6, "NBA number is required.")
       .regex(/^SCN\d{6,}$/, "Invalid NBA number format. (e.g., SCN123456)"),
-    callToBarYear: z
-      .string()
-      .refine(
-        (val) =>
-          !isNaN(parseInt(val)) &&
-          parseInt(val) > 1900 &&
-          parseInt(val) <= new Date().getFullYear(),
-        "Invalid year."
-      ),
+    callToBarYear: z.string().min(4, "Call to Bar Year is required."),
     stateOfCall: z.string().nonempty("Please select your state."),
+    location: z.string().nonempty("Location is required."),
+    specialization: z.string().nonempty("Specialization is required."),
+    Bio: z.string().min(10, "Bio must be at least 10 characters."),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters long")
@@ -134,6 +140,7 @@ const formSchema = z
         "Password must contain at least one special character"
       ),
     confirmPassword: z.string(),
+    profileImageUrl: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
@@ -158,18 +165,26 @@ export default function LawyerSignup() {
       email: "",
       phoneNumber: "",
       nbaNumber: "",
-      callToBarYear: "",
+      callToBarYear: "", // <-- revert to string
       stateOfCall: "",
+      location: "",
+      specialization: "",
+      Bio: "",
       password: "",
       confirmPassword: "",
+      profileImageUrl: "",
     },
     mode: "onBlur",
   });
 
-  const handleImageUpload = (e: any) => {
+  const handleImageUpload = async (e: any) => {
     const file = e.target.files[0];
     if (file) {
+      // You should upload the image to your server or a cloud service here
+      // For now, just use a local URL for preview
+      const url = URL.createObjectURL(file);
       setProfileImage(file);
+      form.setValue("profileImageUrl", url);
     }
   };
 
@@ -184,6 +199,9 @@ export default function LawyerSignup() {
           "nbaNumber",
           "callToBarYear",
           "stateOfCall",
+          "location",
+          "specialization",
+          "Bio",
         ]);
         break;
       default:
@@ -210,11 +228,15 @@ export default function LawyerSignup() {
       const response = await lawyerSignUp(
         values.email,
         values.password,
-        values.fullName || "",
-        values.phoneNumber || "",
-        values.nbaNumber || "",
-        values.callToBarYear || "",
-        values.stateOfCall || ""
+        values.fullName,
+        values.phoneNumber ?? "",
+        values.nbaNumber,
+        values.callToBarYear,
+        values.stateOfCall,
+        values.location,
+        values.specialization,
+        values.Bio,
+        values.profileImageUrl ?? ""
       );
 
       if (response.success) {
@@ -369,7 +391,7 @@ export default function LawyerSignup() {
                   <FormLabel>Call to Bar Year</FormLabel>
                   <div className="relative">
                     <Input
-                      type="number"
+                      type="text"
                       placeholder="e.g., 2010"
                       {...field}
                       className="pl-10"
@@ -403,6 +425,58 @@ export default function LawyerSignup() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <Input placeholder="e.g., Lagos" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="specialization"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Specialization</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select specialization" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {specializations.map((spec) => (
+                        <SelectItem key={spec} value={spec}>
+                          {spec}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="Bio"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bio</FormLabel>
+                  <Input
+                    placeholder="Short bio about your expertise"
+                    {...field}
+                  />
                   <FormMessage />
                 </FormItem>
               )}

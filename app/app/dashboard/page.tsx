@@ -66,6 +66,9 @@ export default async function LegalAidPlatform() {
       date: "asc", // Order by date in ascending order
     },
     take: 5, // Limit to the next 5 upcoming hearings
+    include: {
+      case: true, // Include related case details
+    },
   });
 
   ///fetch the count of active case for the user
@@ -91,7 +94,39 @@ export default async function LegalAidPlatform() {
     include: {
       CourtHearing: true, // Include related court hearings
       user: true, // Include related user details
+      laywer: true, // Include related lawyer details
     },
+  });
+
+  //fetch the applicant for the user
+  const getapplicant = await prisma.coverLetter.findMany({
+    where: {
+      case: {
+        userId: fetchuser.id,
+      },
+    },
+    include: {
+      user: true, // Include related user details
+    },
+  });
+
+  //fetch the top available lawyer
+  const toplawyer = await prisma.lawyer.findMany({
+    take: 10,
+    include: {
+      Case: true, // Include related cases
+    },
+  });
+
+  // Fetch notifications for the user
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId: fetchuser.id,
+    },
+    orderBy: {
+      createdAt: "desc", // Order notifications by creation date in descending order
+    },
+    take: 5, // Limit to the most recent 5 notifications
   });
 
   return (
@@ -102,6 +137,9 @@ export default async function LegalAidPlatform() {
       activeCases={activeCases as any}
       upcomingHearings={fetchUpcomingHearings as any}
       Case={Case as any}
+      getapplicant={getapplicant as any}
+      lawyers={toplawyer as any}
+      notifications={notifications as any}
     />
   );
 }

@@ -44,11 +44,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { CreateCaseAction } from "@/actions/actions";
+import { assignLawyerToCase, CreateCaseAction } from "@/actions/actions";
 
 // Define the type for a case
 interface CaseType {
-  id: number;
+  id: string;
   title: string;
   caseNumber: string;
   status: string;
@@ -59,95 +59,6 @@ interface CaseType {
   description?: string; // Add description to the CaseType
 }
 
-interface HearingType {
-  id: number;
-  case: string;
-  date: string;
-  time: string;
-  location: string;
-  type: string;
-}
-
-/** Dummy applicant types & data (no schema changes, purely for UI) */
-interface ApplicantJob {
-  title: string;
-  company: string;
-  years: string;
-}
-interface ApplicantProfile {
-  email: string;
-  phone: string;
-  location: string;
-  bio: string;
-  recentJobs: ApplicantJob[];
-}
-interface Applicant {
-  id: number;
-  name: string;
-  avatar: string;
-  shortDescription: string;
-  coverLetterSummary: string;
-  profile: ApplicantProfile;
-}
-const mockApplicants: Applicant[] = [
-  {
-    id: 1,
-    name: "Jane Doe",
-    avatar: "https://placehold.co/64x64/1e40af/ffffff?text=JD",
-    shortDescription:
-      "Experienced paralegal with 5+ years in housing & tenant rights.",
-    coverLetterSummary:
-      "I've supported over 120 housing disputes and excel at evidence prep and client comms...",
-    profile: {
-      email: "jane.doe@example.com",
-      phone: "+1 555 987 6543",
-      location: "New York, USA",
-      bio: "Detail-oriented paralegal focused on property disputes, unlawful detainers, and mediation support.",
-      recentJobs: [
-        {
-          title: "Housing Paralegal",
-          company: "Legal Aid Org",
-          years: "2022 – Present",
-        },
-        {
-          title: "Legal Assistant",
-          company: "Smith & Co.",
-          years: "2020 – 2022",
-        },
-        { title: "Intern", company: "NYC Legal Dept.", years: "2019 – 2020" },
-      ],
-    },
-  },
-  {
-    id: 2,
-    name: "John Smith",
-    avatar: "https://placehold.co/64x64/16a34a/ffffff?text=JS",
-    shortDescription:
-      "Recent law grad with clerkship experience in employment law.",
-    coverLetterSummary:
-      "As a clerk I drafted motions and did discovery reviews; I’m eager to contribute immediately...",
-    profile: {
-      email: "john.smith@example.com",
-      phone: "+1 555 123 4567",
-      location: "Los Angeles, USA",
-      bio: "Early career legal professional passionate about advocacy and research-heavy matters.",
-      recentJobs: [
-        {
-          title: "Law Clerk (Intern)",
-          company: "Westside Legal",
-          years: "2024",
-        },
-        { title: "Legal Volunteer", company: "Justice4All", years: "2023" },
-        {
-          title: "Research Assistant",
-          company: "UCLA Law",
-          years: "2022 – 2023",
-        },
-      ],
-    },
-  },
-];
-
 const DashboardComp = ({
   userid,
   upcomingHearingsCount,
@@ -155,17 +66,23 @@ const DashboardComp = ({
   activeCases,
   upcomingHearings,
   Case,
+  getapplicant,
+  lawyers,
+  notifications,
 }: {
   userid: string;
   upcomingHearingsCount: number;
   activeCasesCount: number;
   activeCases: CaseType[];
-  upcomingHearings: HearingType[];
-  Case: CaseType[];
+  upcomingHearings: any;
+  Case: any;
+  getapplicant: any[];
+  lawyers: any;
+  notifications: any;
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedCase, setSelectedCase] = useState<CaseType | null>(null);
+  const [selectedCase, setSelectedCase] = useState<any | null>(null);
 
   /** When user clicks "View Applicant" from the list, open CaseDetails directly on Applicants view */
   const [openApplicantsOnLoad, setOpenApplicantsOnLoad] = useState(false);
@@ -180,6 +97,18 @@ const DashboardComp = ({
     text: string;
     type: "success" | "error" | null;
   }>({ text: "", type: null });
+
+  // Helper to safely format date-like values (Date instance or ISO/string)
+  const formatDate = (d: any) => {
+    if (!d) return "";
+    if (d instanceof Date) return d.toLocaleDateString();
+    try {
+      const parsed = new Date(d);
+      return isNaN(parsed.getTime()) ? String(d) : parsed.toLocaleDateString();
+    } catch {
+      return String(d);
+    }
+  };
 
   // Automatically hide the message after 5 seconds
   useEffect(() => {
@@ -230,41 +159,22 @@ const DashboardComp = ({
     }
   };
 
-  // Mock data for Lawyers and Notifications (assuming this is static or fetched elsewhere)
-  const availableLawyers = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      specialty: "Housing Law",
-      rating: 4.9,
-      cases: 156,
-      languages: ["English", "Spanish"],
-      verified: true,
-      available: true,
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      specialty: "Employment Law",
-      rating: 4.8,
-      cases: 203,
-      languages: ["English", "Mandarin"],
-      verified: true,
-      available: true,
-    },
-    {
-      id: 3,
-      name: "Maria Rodriguez",
-      specialty: "Family Law",
-      rating: 4.9,
-      cases: 178,
-      languages: ["English", "Spanish", "Portuguese"],
-      verified: true,
-      available: false,
-    },
-  ];
+  const handleAssignCase = async (lawyerid: string) => {
+    try {
+      const response = await assignLawyerToCase(
+        selectedCase?.id as string,
+        lawyerid as string
+      );
+    } catch (error: any) {
+      console.error("Error assigning case:", error);
+      setMessage({
+        text: "Failed to assign case. Please try again.",
+        type: "error",
+      });
+    }
+  };
 
-  const notifications = [
+  const notificationss = [
     {
       id: 1,
       type: "hearing",
@@ -303,15 +213,16 @@ const DashboardComp = ({
     openApplicantsOnLoad = false,
     onConsumeOpenApplicantsFlag,
   }: {
-    case_: CaseType;
+    case_: any;
     openApplicantsOnLoad?: boolean;
     onConsumeOpenApplicantsFlag?: () => void;
   }) => {
     const [view, setView] = useState<"details" | "applicants" | "profile">(
       "details"
     );
-    const [selectedApplicant, setSelectedApplicant] =
-      useState<Applicant | null>(null);
+    const [selectedApplicant, setSelectedApplicant] = useState<any | null>(
+      null
+    );
 
     useEffect(() => {
       if (openApplicantsOnLoad) {
@@ -332,25 +243,22 @@ const DashboardComp = ({
         </Button>
 
         <h3 className="text-lg font-semibold">Applicants</h3>
-        {mockApplicants.map((applicant) => (
+        {getapplicant.map((applicant) => (
           <Card key={applicant.id} className="rounded-lg shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={applicant.avatar} alt={applicant.name} />
-                    <AvatarFallback>
-                      {applicant.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)}
-                    </AvatarFallback>
+                    <AvatarImage
+                      src={applicant.avatar}
+                      alt={applicant.fullName}
+                    />
+                    <AvatarFallback>{applicant.user.fullName}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{applicant.name}</p>
+                    <p className="font-medium">{applicant.user.fullName}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {applicant.shortDescription}
+                      {applicant.user.Bio}
                     </p>
                   </div>
                 </div>
@@ -361,7 +269,7 @@ const DashboardComp = ({
                   Cover Letter
                 </p>
                 <p className="text-gray-700 dark:text-gray-300">
-                  {applicant.coverLetterSummary}
+                  {applicant.content}
                 </p>
               </div>
 
@@ -370,7 +278,7 @@ const DashboardComp = ({
                   size="sm"
                   className="rounded-lg"
                   onClick={() => {
-                    setSelectedApplicant(applicant);
+                    setSelectedApplicant(applicant.user);
                     setView("profile");
                   }}
                 >
@@ -384,7 +292,7 @@ const DashboardComp = ({
     );
 
     /** Sub-component: Applicant Profile (with top 3 recent jobs) */
-    const ApplicantProfile = ({ applicant }: { applicant: Applicant }) => (
+    const ApplicantProfile = ({ applicant }: { applicant: any }) => (
       <div className="space-y-4">
         <Button
           variant="ghost"
@@ -401,20 +309,20 @@ const DashboardComp = ({
           <CardHeader>
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={applicant.avatar} alt={applicant.name} />
+                <AvatarImage src={applicant.avatar} alt={applicant.fullName} />
                 <AvatarFallback>
-                  {applicant.name
+                  {applicant.fullName
                     .split(" ")
-                    .map((n) => n[0])
+                    .map((n: any) => n[0])
                     .join("")
                     .slice(0, 2)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-xl">{applicant.name}</CardTitle>
+                <CardTitle className="text-xl">{applicant.fullName}</CardTitle>
                 <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
-                  {applicant.profile.location}
+                  {applicant.location}
                 </p>
               </div>
             </div>
@@ -423,11 +331,11 @@ const DashboardComp = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <span>{applicant.profile.email}</span>
+                <span>{applicant.email}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                <span>{applicant.profile.phone}</span>
+                <span>{applicant.phoneNumber}</span>
               </div>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
@@ -440,17 +348,17 @@ const DashboardComp = ({
                 About
               </p>
               <p className="text-gray-700 dark:text-gray-300">
-                {applicant.profile.bio}
+                {/* {applicant.profile.bio} */}BIO
               </p>
             </div>
 
-            <div>
+            {/* <div>
               <p className="text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-2">
                 <Briefcase className="h-4 w-4" />
                 Top 3 Recent Jobs
               </p>
               <ul className="space-y-2">
-                {applicant.profile.recentJobs.slice(0, 3).map((job, idx) => (
+                {applicant.case.slice(0, 3).map((job) => (
                   <li
                     key={idx}
                     className="flex items-start justify-between p-3 border rounded-lg dark:border-gray-700"
@@ -467,6 +375,19 @@ const DashboardComp = ({
                   </li>
                 ))}
               </ul>
+            </div> */}
+
+            <div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  // Handle messaging the applicant
+                  handleAssignCase(applicant.id);
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Assign Case
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -505,8 +426,8 @@ const DashboardComp = ({
               >
                 {case_.status}
               </Badge>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Case Number: **{case_.caseNumber}**
+              <span className="text-lg text-gray-600 dark:text-gray-400">
+                Case Number: {case_.caseNumber}
               </span>
             </div>
           </CardHeader>
@@ -520,7 +441,7 @@ const DashboardComp = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-gray-600 dark:text-gray-400">Lawyer:</p>
-                <p className="font-medium">{case_.lawyer}</p>
+                <p className="font-medium">{case_.laywer.fullName}</p>
               </div>
               <div>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -628,7 +549,7 @@ const DashboardComp = ({
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-red-500">
-                3
+                {notifications.filter((n: any) => !n.isRead).length}
               </Badge>
             </Button>
             <DropdownMenu>
@@ -730,17 +651,19 @@ const DashboardComp = ({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {upcomingHearings.map((hearing) => (
+                    {upcomingHearings.map((hearing: any) => (
                       <div
                         key={hearing.id}
                         className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900 rounded-lg border border-yellow-200 dark:border-yellow-800"
                       >
                         <div>
                           <div className="font-medium text-sm">
-                            {hearing.case}
+                            {hearing.case?.title ??
+                              hearing.case?.caseNumber ??
+                              String(hearing.case ?? "")}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-300">
-                            {hearing.date} at {hearing.time}
+                            {formatDate(hearing.date)} at {hearing.time}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-300">
                             {hearing.location}
@@ -828,29 +751,25 @@ const DashboardComp = ({
               </div>
 
               <div className="space-y-4">
-                {availableLawyers.map((lawyer) => (
+                {lawyers.map((lawyer: any) => (
                   <Card key={lawyer.id} className="rounded-lg shadow-sm">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarImage
-                              src={`https://placehold.co/40x40/1e40af/ffffff?text=${lawyer.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}`}
-                              alt={lawyer.name}
+                              src={`https://placehold.co/40x40/1e40af/ffffff?text=${lawyer.fullName.split(
+                                " "
+                              )}`}
+                              alt={lawyer.fullName}
                             />
                             <AvatarFallback>
-                              {lawyer.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
+                              {lawyer.fullName.split(" ")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{lawyer.name}</h3>
+                              <h3 className="font-medium">{lawyer.fullName}</h3>
                               {lawyer.verified && (
                                 <Badge
                                   variant="secondary"
@@ -861,7 +780,7 @@ const DashboardComp = ({
                               )}
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {lawyer.specialty}
+                              {lawyer.specialization}
                             </p>
                           </div>
                         </div>
@@ -873,9 +792,8 @@ const DashboardComp = ({
                       </div>
 
                       <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400 mb-3">
-                        <span>⭐ {lawyer.rating}</span>
-                        <span>{lawyer.cases} cases</span>
-                        <span>Languages: {lawyer.languages.join(", ")}</span>
+                        <span>⭐ {lawyer.Case.length / 2}</span>
+                        <span>{lawyer.Case.length} cases</span>
                       </div>
 
                       <div className="flex gap-2">
@@ -918,7 +836,7 @@ const DashboardComp = ({
                 // Show the list of cases
                 <div className="space-y-4">
                   {Case.length > 0 ? (
-                    Case.map((case_: CaseType) => (
+                    Case.map((case_: any) => (
                       <Card key={case_.id} className="rounded-lg shadow-sm">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-3">
@@ -949,7 +867,7 @@ const DashboardComp = ({
                               <span className="text-gray-600 dark:text-gray-400">
                                 Lawyer:
                               </span>
-                              <span>{case_.lawyer}</span>
+                              <span>{case_.laywer.fullName}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600 dark:text-gray-400">
@@ -1020,7 +938,7 @@ const DashboardComp = ({
               </h2>
 
               <div className="space-y-3">
-                {notifications.map((notification) => (
+                {notifications.map((notification: any) => (
                   <Card
                     key={notification.id}
                     className={`rounded-lg shadow-sm ${
@@ -1042,7 +960,7 @@ const DashboardComp = ({
                               {notification.title}
                             </h3>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {notification.time}
+                              {formatDate(notification.createdAt)}
                             </span>
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -1125,7 +1043,7 @@ const DashboardComp = ({
                   id="caseType"
                   value={caseType}
                   onChange={(e) => setCaseType(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="Housing">Housing</option>
                   <option value="Family Law">Family Law</option>

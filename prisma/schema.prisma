@@ -53,7 +53,8 @@ model User {
 
   // A user might provide reviews for lawyers they've interacted with
   // reviews          Review[]
-  Case Case[]
+  Case         Case[]
+  notification notification[]
 }
 
 // Example of how you might define a 'Case' model (optional, for context)
@@ -94,8 +95,11 @@ model CourtHearing {
 model Lawyer {
   id              String   @id @default(uuid())
   email           String   @unique
-  password        String
+  password        String // Hashed password for secure authentication
   fullName        String?
+  location        String? // e.g., "Lagos", "Abuja"
+  specialization  String? // e.g., "Family Law", "Criminal Law", "
+  Bio             String? // Short biography or description of the lawyer's expertise
   phoneNumber     String?  @unique
   nbaNumber       String?  @unique // Nigerian Bar Association number, unique for each lawyer
   callToBarYear   Int? // Year the lawyer was called to the bar
@@ -109,6 +113,8 @@ model Lawyer {
   Case        Case[]
   Events      Events[] // Events related to the lawyer, such as court hearings or legal events
   coverLetter coverLetter[]
+
+  notification notification[]
 }
 
 model Events {
@@ -136,4 +142,21 @@ model coverLetter {
   //relationships
   case Case   @relation(fields: [caseNumber], references: [caseNumber])
   user Lawyer @relation(fields: [lawyerId], references: [id])
+}
+
+model notification {
+  id        String   @id @default(uuid())
+  userId    String? // FK to User when the notification is for a client
+  lawyerId  String? // FK to Lawyer when the notification is for a lawyer
+  title     String? // Title of the notification
+  // e.g., "New Court Hearing Scheduled", "Case Update", "New Message from Lawyer"
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  lawyer Lawyer? @relation(fields: [lawyerId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([lawyerId])
 }

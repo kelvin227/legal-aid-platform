@@ -437,9 +437,11 @@ const App = ({
                     key={client.id}
                     className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                   >
-                    <div className="font-semibold">{client.name}</div>
+                    <div className="font-semibold">
+                      {client.user.firstName + " " + client.user.lastName}
+                    </div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {client.case}
+                      {client.title}
                     </div>
                     <button
                       onClick={() => handleViewCase(client)}
@@ -461,7 +463,7 @@ const App = ({
                     key={event.id}
                     className="flex flex-col p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                   >
-                    <div className="font-semibold">{event.title}</div>
+                    <div className="font-semibold">{event.type}</div>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       <span className="mr-2">
                         {event.date.toLocaleDateString()}

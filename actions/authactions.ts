@@ -85,6 +85,10 @@ export async function lawyerSignUp(email:string, password:string, fullName: stri
         nbaNumber: string,
         callToBarYear: string,
         stateOfCall: string,
+        location: string,
+        specialization: string,
+        Bio: string,
+        avatar: string,
         ){
     try {
         const existingUser = await prisma.user.findUnique({

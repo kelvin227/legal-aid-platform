@@ -41,7 +41,7 @@ export default auth(async (req) => {
         //case "web-lap":
             case "web":
                 {
-                    const PROTECTED_PATHS = [""]; //add all exact protected paths here
+                    const PROTECTED_PATHS = ["/dashboard", "/client"]; //add all exact protected paths here
                     const isProtectedPath = PROTECTED_PATHS.includes(pathname);
                     const isLoggedin = req.auth;
                     if(!isLoggedin && isProtectedPath){

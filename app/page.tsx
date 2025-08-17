@@ -20,6 +20,7 @@ import {
   Handshake,
   ChevronLeft,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -122,7 +123,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Scale className="h-7 w-7 text-primary" />
-            <span className="text-xl font-bold text-gray-900 dark:text-gray-50">
+            <span className="text-xl font-bold light:text-gray-900 dark:text-gray-50">
               LegalAid Connect
             </span>
           </Link>
@@ -131,25 +132,25 @@ export default function LandingPage() {
           <nav className="hidden md:flex items-center gap-6">
             <Link
               href="#problem"
-              className="text-gray-600 hover:text-primary transition-colors"
+              className=" hover:text-primary transition-colors"
             >
               The Problem
             </Link>
             <Link
               href="#solution"
-              className="text-gray-600 hover:text-primary transition-colors"
+              className=" hover:text-primary transition-colors"
             >
               Our Solution
             </Link>
             <Link
               href="#features"
-              className="text-gray-600 hover:text-primary transition-colors"
+              className=" hover:text-primary transition-colors"
             >
               Features
             </Link>
             <Link
               href="#contact"
-              className="text-gray-600 hover:text-primary transition-colors"
+              className=" hover:text-primary transition-colors"
             >
               Contact
             </Link>
@@ -185,28 +186,28 @@ export default function LandingPage() {
               <nav className="flex flex-col gap-4 p-4">
                 <Link
                   href="#problem"
-                  className="py-2 text-lg text-gray-700 hover:text-primary"
+                  className="py-2 text-lg hover:text-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   The Problem
                 </Link>
                 <Link
                   href="#solution"
-                  className="py-2 text-lg text-gray-700 hover:text-primary"
+                  className="py-2 text-lg hover:text-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Our Solution
                 </Link>
                 <Link
                   href="#features"
-                  className="py-2 text-lg text-gray-700 hover:text-primary"
+                  className="py-2 text-lg hover:text-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Features
                 </Link>
                 <Link
                   href="#contact"
-                  className="py-2 text-lg text-gray-700 hover:text-primary"
+                  className="py-2 text-lg hover:text-primary"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Contact
@@ -419,90 +420,174 @@ export default function LandingPage() {
       {/* Detailed Features Section - New Carousel Design */}
       <section
         id="features"
-        className="py-16 md:py-24 bg-gray-50 dark:bg-gray-800"
+        className="relative py-16 md:py-28 bg-gradient-to-b from-white/60 to-gray-50 dark:from-gray-900 dark:to-gray-800"
       >
-        <div className="container mx-auto px-4 max-w-3xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900 dark:text-gray-50">
-            Features Designed for You
-          </h2>
+        {/* Decorative background shapes */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+        >
+          <svg
+            className="absolute left-1/2 top-0 -translate-x-1/2 opacity-10 dark:opacity-20"
+            width="1200"
+            height="600"
+            viewBox="0 0 1200 600"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1">
+                <stop offset="0" stopColor="#60A5FA" stopOpacity="0.25" />
+                <stop offset="1" stopColor="#A78BFA" stopOpacity="0.12" />
+              </linearGradient>
+            </defs>
+            <ellipse cx="600" cy="300" rx="520" ry="220" fill="url(#g1)" />
+          </svg>
+        </div>
+
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl md:text-4xl font-extrabold leading-tight text-gray-900 dark:text-gray-50">
+                Features Designed for Real Impact
+              </h2>
+              <p className="mt-3 text-lg text-gray-600 dark:text-gray-300">
+                Tools that help you find representation, track case progress,
+                and communicate securely — built for low-bandwidth and
+                real-world Nigerian contexts.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={scrollPrev}
+                aria-label="Previous slide"
+                className="hidden md:inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow hover:scale-105 transition-transform"
+                title="Previous"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+              </button>
+              <button
+                onClick={scrollNext}
+                aria-label="Next slide"
+                className="hidden md:inline-flex items-center justify-center w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 shadow hover:scale-105 transition-transform"
+                title="Next"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+              </button>
+            </div>
+          </div>
+
+          {/* Embla viewport */}
           <div className="relative">
-            <div className="embla" ref={emblaRef}>
-              <div className="embla__container flex -ml-4">
-                {featureCards.map((card, index) => (
+            <div
+              className="embla overflow-hidden rounded-2xl"
+              ref={emblaRef}
+              role="region"
+              aria-roledescription="carousel"
+              aria-label="Platform features"
+            >
+              <div className="embla__container flex gap-6 py-6">
+                {featureCards.map((card, idx) => (
                   <div
-                    key={index}
-                    className="embla__slide flex-shrink-0 w-full px-4"
+                    key={idx}
+                    className={`embla__slide flex-shrink-0 w-full sm:w-4/5 md:w-2/3 lg:w-1/2 px-2`}
+                    style={{ minWidth: "80%" }}
+                    aria-hidden={selectedIndex !== idx}
                   >
-                    <Card
-                      className={`h-full border-2 transform hover:scale-105 transition-all duration-300 ease-in-out relative group ${card.color} shadow-lg dark:shadow-2xl dark:shadow-gray-700 bg-white dark:bg-gray-900`}
+                    <article
+                      className={`h-full group relative overflow-hidden rounded-2xl border transition-transform duration-500 ease-in-out transform bg-white dark:bg-gray-900 shadow-lg hover:-translate-y-1 hover:shadow-2xl`}
                     >
-                      <div
-                        className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                        style={{
-                          backgroundImage: `linear-gradient(to right, ${
-                            card.color.split("-")[1] === "blue"
-                              ? "#3b82f6"
-                              : card.color.split("-")[1] === "green"
-                              ? "#22c55e"
-                              : card.color.split("-")[1] === "purple"
-                              ? "#a855f7"
-                              : card.color.split("-")[1] === "yellow"
-                              ? "#f59e0b"
-                              : card.color.split("-")[1] === "red"
-                              ? "#ef4444"
-                              : "#f97316"
-                          }, transparent)`,
-                        }}
-                      ></div>
-                      <CardHeader className="relative z-10">
-                        <CardTitle className="flex items-center gap-3 text-primary">
-                          <card.icon className="h-6 w-6" />
-                          {card.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-gray-700 dark:text-gray-300 relative z-10">
-                        {card.text}
-                      </CardContent>
-                    </Card>
+                      <div className="absolute inset-0 pointer-events-none transition-opacity duration-500 group-hover:opacity-30" />
+                      <div className="p-6 md:p-8 relative z-10">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center justify-center h-14 w-14 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-md">
+                            <card.icon className="h-7 w-7" />
+                          </div>
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                            {card.title}
+                          </h3>
+                        </div>
+
+                        <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
+                          {card.text}
+                        </p>
+
+                        <div className="mt-6 flex items-center gap-3">
+                          <a
+                            href="#"
+                            onClick={(e) => e.preventDefault()}
+                            className="inline-flex items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white shadow hover:brightness-105 transition"
+                          >
+                            Learn more
+                            <ArrowRight className="w-4 h-4" />
+                          </a>
+
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {idx + 1} / {featureCards.length}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* subtle slide accent */}
+                      <div className="absolute right-0 top-0 bottom-0 w-6 md:w-8 bg-gradient-to-l from-white/0 to-white/40 dark:from-transparent dark:to-gray-900/20 pointer-events-none" />
+                    </article>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Carousel Buttons */}
-            <Button
-              className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 p-2 rounded-full hidden md:block transition-all duration-300 hover:bg-blue-600 hover:text-white"
-              onClick={scrollPrev}
-              disabled={!canScrollPrev}
-              variant="secondary"
-              size="icon"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </Button>
-            <Button
-              className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 p-2 rounded-full hidden md:block transition-all duration-300 hover:bg-blue-600 hover:text-white"
-              onClick={scrollNext}
-              disabled={!canScrollNext}
-              variant="secondary"
-              size="icon"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </Button>
-          </div>
-
-          {/* Carousel Dots */}
-          <div className="embla__dots flex justify-center mt-8">
-            {featureCards.map((_, index) => (
+            {/* Mobile controls */}
+            <div className="flex md:hidden justify-between mt-4 items-center">
               <button
-                key={index}
-                onClick={() => emblaApi?.scrollTo(index)}
-                className={`embla__dot w-3 h-3 mx-1 rounded-full transition-all duration-300 ${
-                  index === selectedIndex
-                    ? "bg-blue-600 w-8"
-                    : "bg-gray-300 dark:bg-gray-600"
-                }`}
-              ></button>
-            ))}
+                onClick={scrollPrev}
+                aria-label="Previous slide"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+              </button>
+              <div className="flex items-center gap-2">
+                {featureCards.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => emblaApi?.scrollTo(i)}
+                    aria-label={`Go to slide ${i + 1}`}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      i === selectedIndex
+                        ? "bg-blue-600 w-8 rounded-full shadow-lg"
+                        : "bg-gray-300 dark:bg-gray-700"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={scrollNext}
+                aria-label="Next slide"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+              </button>
+            </div>
+
+            {/* Desktop dots */}
+            <div className="hidden md:flex justify-center mt-8 gap-3">
+              {featureCards.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => emblaApi?.scrollTo(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className={`relative w-10 h-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 transition-all duration-300 ${
+                    i === selectedIndex ? "scale-110" : "opacity-70"
+                  }`}
+                >
+                  <span
+                    className={`absolute left-0 top-0 bottom-0 bg-blue-600 transition-all duration-500 ${
+                      i === selectedIndex ? "w-full" : "w-0"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
