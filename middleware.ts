@@ -26,8 +26,8 @@ export default auth(async (req) => {
 
 
     switch (subdomain) {
-        //case "app-lap":
-        case "app":
+        case "app-lap":
+        //case "app":
             {
                 const PROTECTED_PATHS = ["/dashboard",]; // Add all your exact protected paths here
                 const isProtectedPath = PROTECTED_PATHS.includes(pathname);
@@ -38,8 +38,8 @@ export default auth(async (req) => {
                 return NextResponse.rewrite(new URL(`/app${req.nextUrl.pathname}`, req.url));
 
             }
-        //case "web-lap":
-            case "web":
+        case "web-lap":
+        //    case "web":
                 {
                     const PROTECTED_PATHS = ["/dashboard", "/client"]; //add all exact protected paths here
                     const isProtectedPath = PROTECTED_PATHS.includes(pathname);
@@ -49,8 +49,8 @@ export default auth(async (req) => {
                     } 
                     return NextResponse.rewrite(new URL(`/web${req.nextUrl.pathname}`, req.url))
                 }
-        //case "admin-lap":
-        case "admin":
+        case "admin-lap":
+        //case "admin":
             {
                 const PROTECTED_PATHS = ["/", "/profile", "/settings", "/checkout", "/orders"]; // Add all your exact protected paths here
                 const isProtectedPath = PROTECTED_PATHS.includes(pathname);
