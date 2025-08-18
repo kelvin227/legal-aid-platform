@@ -66,11 +66,27 @@ export async function SignUp(email:string, password:string, firstName: string, l
             return {success: false, message: "Email already in use"}
         }
 
-        await signIn("credentials", {
-            email: email,
-            password: password,
-            redirect: false
+
+         const createuser = await prisma.user.create({
+            data:{
+                email,
+                password,
+                firstName,
+                lastName,
+                phoneNumber,
+                address,
+                city,
+                state,
+                zipCode,
+                isIndigent: true,
+                proofOfIndigencyUrl,
+
+            }
         })
+        if(!createuser){
+            return {success: false, message: "failed to create user"}
+        }
+
         return {success: true, message: "User created successfully"}
         
     } catch (error) {

@@ -1,5 +1,4 @@
 import Credentials from "next-auth/providers/credentials";
-import { hashPassword } from "./lib/utils";
 import { prisma } from "./lib/db";
 import bcrypt from "bcryptjs";
 import { NextAuthConfig } from "next-auth";
@@ -19,7 +18,6 @@ const providers = [
 
         const password = credentials.password as string
         const email =  credentials.email as string
-        const hashedPassword = hashPassword(password);
 
         // check for existing user
         let user = await prisma.user.findUnique({
@@ -36,16 +34,7 @@ const providers = [
                 }
             });
             if(!lawyer){
-                user = await prisma.user.create({
-                data: {
-                    email: email,
-                    password: hashedPassword,
-                }
-            })
-            if(!user) {
-                console.error("User creation failed")
-                return null
-            }
+             return null
             } else{
                  const isMatch = bcrypt.compareSync(password, lawyer.password)
             if (!isMatch){

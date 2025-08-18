@@ -213,7 +213,7 @@ export default function SignUpPage() {
       );
 
       if (response.success) {
-        toast.success(response.message || "Sign up successful!");
+        toast.success(response.message);
         router.replace("/login"); // Redirect to login page after successful signup
       } else {
         setError(response.message || "Sign up failed. Please try again.");

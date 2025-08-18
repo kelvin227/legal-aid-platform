@@ -53,7 +53,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { lawyerSignUp, SignUp } from "@/actions/authactions";
+import { lawyerSignUp } from "@/actions/authactions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

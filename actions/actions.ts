@@ -2,7 +2,6 @@
 import { Resend } from "resend";
 import NotificationEmail from "../components/emails/NotificationEmail";
 import { prisma } from "@/lib/db";
-import React from "react";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
