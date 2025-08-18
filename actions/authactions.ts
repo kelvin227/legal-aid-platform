@@ -59,6 +59,12 @@ export async function SignUp(email:string, password:string, firstName: string, l
         isIndigent: string,
         proofOfIndigencyUrl: string){
     try {
+        const lawyer = await prisma.lawyer.findUnique({
+            where:{email}
+        })
+        if(lawyer){
+            return{success: false, message:"This email has already been used to sign up as a lawyer"}
+        }
         const existingUser = await prisma.user.findUnique({
             where: {email: email}
         })
@@ -66,11 +72,12 @@ export async function SignUp(email:string, password:string, firstName: string, l
             return {success: false, message: "Email already in use"}
         }
 
+        const hashedPassword = bcrypt.hashSync(password, 10);
 
          const createuser = await prisma.user.create({
             data:{
                 email,
-                password,
+                password: hashedPassword,
                 firstName,
                 lastName,
                 phoneNumber,
@@ -110,7 +117,13 @@ export async function lawyerSignUp(email:string, password:string, fullName: stri
             where: {email: email}
         })
         if (existingUser){
-            return {success: false, message: "Email already in use"}
+            return {success: false, message: "This email has been used to sign up as a client"}
+        }
+        const lawyer = await prisma.user.findUnique({
+            where:{email}
+        })
+        if(lawyer){
+            return {success: false, message:"Email already in use"}
         }
 
         const hashedPassword = bcrypt.hashSync(password, 10);
