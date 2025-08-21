@@ -77,7 +77,7 @@ const DashboardComp = ({
   upcomingHearings: any;
   Case: any;
   getapplicant: any[];
-  lawyers: any;
+  lawyers: any[];
   notifications: any;
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -93,6 +93,8 @@ const DashboardComp = ({
   const [caseDescription, setCaseDescription] = useState("");
   const [caseType, setCaseType] = useState("Housing");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lawyerProfile, setLawyerProfile] = useState<any | null>(null);
+  const [lawyerViewPage, setLawyerViewPage] = useState("default")
   const [message, setMessage] = useState<{
     text: string;
     type: "success" | "error" | null;
@@ -174,32 +176,6 @@ const DashboardComp = ({
     }
   };
 
-  const notificationss = [
-    {
-      id: 1,
-      type: "hearing",
-      title: "Hearing Reminder",
-      message: "Your housing dispute hearing is tomorrow at 10:00 AM",
-      time: "2 hours ago",
-      urgent: true,
-    },
-    {
-      id: 2,
-      type: "update",
-      title: "Case Update",
-      message: "New documents have been filed in your employment case",
-      time: "1 day ago",
-      urgent: false,
-    },
-    {
-      id: 3,
-      type: "message",
-      title: "Message from Sarah Johnson",
-      message: "I've reviewed your case documents. Let's schedule a call.",
-      time: "2 days ago",
-      urgent: false,
-    },
-  ];
 
   /**
    * CaseDetails now supports internal views:
@@ -742,7 +718,11 @@ const DashboardComp = ({
             <TabsContent value="lawyers" className="space-y-4">
               <h2 className="text-xl font-semibold mb-4">Find Legal Help</h2>
 
-              <div className="relative mb-4">
+                  {lawyerViewPage === "default" ?
+                  <div>
+
+                  
+                    <div className="relative mb-4">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search by specialty or language..."
@@ -804,19 +784,136 @@ const DashboardComp = ({
                         >
                           <MessageCircle className="h-4 w-4 mr-1" />
                           Contact
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 rounded-lg"
-                        >
-                          View Profile
-                        </Button>
+                          </Button>
                       </div>
+
+                                      <div className="mt-3">
+                <Button
+                  size="sm"
+                  className="rounded-lg"
+                  onClick={() => {
+                    setLawyerProfile(lawyer);
+                    setLawyerViewPage("profile");
+                  }}
+                >
+                  View Profile
+                </Button>
+              </div>
+
+                        
                     </CardContent>
                   </Card>
                 ))}
               </div>
+              </div> : <div className="space-y-4">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setLawyerViewPage("default");
+          }}
+          className="mb-1"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Applicants
+        </Button>
+
+        <Card className="rounded-lg shadow-sm">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-12 w-12">
+<AvatarImage
+                              src={`https://placehold.co/40x40/1e40af/ffffff?text=${lawyerProfile.fullName
+                                .split(
+                                " "
+                              )
+                            .map((n: any) => n[0])
+                          .join("")
+                        .slice(0, 2)}`}
+                              alt={lawyerProfile.fullName}
+                            />               
+                             <AvatarFallback>
+                  {lawyerProfile.fullName
+                    .split(" ")
+                    .map((n: any) => n[0])
+                    .join("")
+                    .slice(0, 2)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-xl">{lawyerProfile.fullName}</CardTitle>
+                <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {lawyerProfile.location}
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                <span>{lawyerProfile.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                <span>{lawyerProfile.phoneNumber}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>{lawyerProfile.specialization}</span>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-gray-600 dark:text-gray-400 font-medium mb-1">
+                About
+              </p>
+              <p className="text-gray-700 dark:text-gray-300">
+                {/* {applicant.profile.bio} */}BIO
+              </p>
+            </div>
+
+            {/* <div>
+              <p className="text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Top 3 Recent Jobs
+              </p>
+              <ul className="space-y-2">
+                {applicant.case.slice(0, 3).map((job) => (
+                  <li
+                    key={idx}
+                    className="flex items-start justify-between p-3 border rounded-lg dark:border-gray-700"
+                  >
+                    <div>
+                      <p className="font-medium">{job.title}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {job.company}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {job.years}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div> */}
+
+            {/* <div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  // Handle messaging the applicant
+                  handleAssignCase(applicant.id);
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Assign Case
+              </Button>
+            </div> */}
+          </CardContent>
+        </Card>
+      </div>
+                  }
+              
             </TabsContent>
 
             {/* Cases Tab - Conditional Rendering */}

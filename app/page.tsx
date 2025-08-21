@@ -32,6 +32,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
 
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -154,9 +156,41 @@ export default function LandingPage() {
             >
               Contact
             </Link>
-            <Link href="/login">
-              <Button variant="outline">Login / Dashboard</Button>
-            </Link>
+
+                            <DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button
+      variant="outline"
+      className="px-6 py-2 font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 transition-colors duration-300 rounded-md shadow-md"
+    >
+      Login / Dashboard
+    </Button>
+  </DropdownMenuTrigger>
+
+  <DropdownMenuContent
+    className="mt-2 w-64 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 animate-slide-down"
+    sideOffset={8}
+  >
+    <div className="flex flex-col gap-2 p-4">
+      <DropdownMenuItem>
+        <Link
+          href="https://web-lap.vercel.app/signin"
+          className="block w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-100 rounded transition"
+        >
+          👨‍⚖️ Lawyer Dashboard
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem>
+        <Link
+          href="https://app-lap.vercel.app/login"
+          className="block w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-100 rounded transition"
+        >
+          👤 Client Dashboard
+        </Link>
+      </DropdownMenuItem>
+    </div>
+  </DropdownMenuContent>
+</DropdownMenu>
           </nav>
 
           {/* Mobile Menu Trigger */}
@@ -212,15 +246,41 @@ export default function LandingPage() {
                 >
                   Contact
                 </Link>
-                <Link href="/app/login" className="w-full">
-                  <Button
-                    className="w-full mt-4"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Login / Dashboard
-                  </Button>
-                </Link>
-              </nav>
+<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button
+      className="w-full mt-4 px-4 py-2 text-white bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-500 hover:to-purple-600 transition-colors duration-300 rounded-md shadow-md"
+      onClick={() => setIsMobileMenuOpen(false)}
+    >
+      Login / Dashboard
+    </Button>
+  </DropdownMenuTrigger>
+
+  <DropdownMenuContent
+    className="mt-2 w-full bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 animate-slide-down"
+    sideOffset={8}
+  >
+    <div className="flex flex-col gap-2 p-4">
+      <DropdownMenuItem>
+        <Link
+          href="https://web-lap.vercel.app/signin"
+          className="block w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-100 rounded transition"
+        >
+          👨‍⚖️ Lawyer Dashboard
+        </Link>
+      </DropdownMenuItem>
+      <DropdownMenuItem>
+        <Link
+          href="https://app-lap.vercel.app/login"
+          className="block w-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-indigo-100 rounded transition"
+        >
+          👤 Client Dashboard
+        </Link>
+      </DropdownMenuItem>
+    </div>
+  </DropdownMenuContent>
+</DropdownMenu>
+                  </nav>
             </SheetContent>
           </Sheet>
         </div>

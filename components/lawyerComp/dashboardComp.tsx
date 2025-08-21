@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Briefcase,
   Calendar,
@@ -13,6 +13,11 @@ import {
   FileQuestion,
   ArrowLeft,
   BriefcaseMedical, // New icon for the application form
+  Plus,
+  Trash,
+  Check,
+  Square,
+  Bell,
 } from "lucide-react";
 import { SubmitCv } from "@/actions/actions";
 
@@ -204,7 +209,49 @@ const App = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
   const [isApplyingForCase, setIsApplyingForCase] = useState(false); // New state for the application form
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [newTaskText, setNewTaskText] = useState("");
 
+  // Effect to load tasks from localStorage when the component mounts
+  useEffect(() => {
+    const savedTasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+    setTasks(savedTasks);
+  }, []);
+
+  // Effect to save tasks to localStorage whenever the 'tasks' state changes
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  // Function to handle adding a new task
+  const handleAddTask = (e: any) => {
+    e.preventDefault();
+    if (newTaskText.trim() === "") return;
+
+    const newTask = {
+      id: Date.now(), // Use a unique ID based on the current timestamp
+      text: newTaskText.trim(),
+      completed: false,
+    };
+
+    setTasks([...tasks, newTask]);
+    setNewTaskText("");
+  };
+
+  // Function to toggle a task's completed status
+  const handleToggleComplete = (taskId: number) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  // Function to handle deleting a task
+  const handleDeleteTask = (taskId: number) => {
+    setTasks(tasks.filter((task) => task.id !== taskId));
+  };
+  
   // Function to handle showing the case details
   const handleViewCase = (caseItem: any) => {
     setSelectedCase(caseItem);
@@ -235,14 +282,7 @@ const App = ({
     handleCancelApplication();
   };
 
-  // Dummy tasks data
-  const tasks = [
-    { id: 1, text: "Prepare for John Doe meeting", completed: false },
-    { id: 2, text: "File motion for Smith vs. Johnson", completed: true },
-    { id: 3, text: "Review new client intake forms", completed: false },
-  ];
-
-  const firmName = "Nexus Law Group";
+  const firmName = "Blazers Law Group";
   const userName = `${fullname}`;
 
   return (
@@ -327,10 +367,15 @@ const App = ({
               </span>
               <span className="block font-semibold">{userName}</span>
             </div>
+             <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+              <Bell />
+            </div>
+          {/* replace with the competition picture / Blazers group picture */}
             <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
               JP
             </div>
           </div>
+         
         </header>
 
         {/* Conditional rendering based on selectedCase and isApplyingForCase states */}
@@ -478,28 +523,68 @@ const App = ({
 
             {/* Widget: To-Do List */}
             <div className="md:col-span-2 lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
-              <h3 className="text-xl font-bold mb-4">To-Do List</h3>
-              <ul className="space-y-3">
-                {tasks.map((task) => (
-                  <li key={task.id} className="flex items-center space-x-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">To-Do List</h3>
+                <div className="flex-1 max-w-xs ml-4">
+                  <form onSubmit={handleAddTask} className="flex space-x-2">
                     <input
-                      type="checkbox"
-                      checked={task.completed}
-                      className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500"
-                      readOnly
+                      type="text"
+                      className="flex-1 p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-shadow duration-200"
+                      placeholder="Add a task..."
+                      value={newTaskText}
+                      onChange={(e) => setNewTaskText(e.target.value)}
                     />
-                    <span
-                      className={`text-md ${
-                        task.completed
-                          ? "line-through text-gray-500 dark:text-gray-400"
-                          : ""
-                      }`}
+                    <button
+                      type="submit"
+                      className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
                     >
-                      {task.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                      <Plus size={20} />
+                    </button>
+                  </form>
+                </div>
+              </div>
+              <div className="overflow-y-auto max-h-56">
+                <ul className="space-y-3">
+                  {tasks.length > 0 ? (
+                    tasks.map((task) => (
+                      <li
+                        key={task.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => handleToggleComplete(task.id)}
+                            className="text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400"
+                          >
+                            {task.completed ? (
+                              <Check size={20} className="text-green-600 dark:text-green-400" />
+                            ) : (
+                              <Square size={20} />
+                            )}
+                          </button>
+                          <span
+                            className={`text-md font-medium ${
+                              task.completed ? "line-through text-gray-500 dark:text-gray-400" : ""
+                            }`}
+                          >
+                            {task.text}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200"
+                        >
+                          <Trash size={20} />
+                        </button>
+                      </li>
+                    ))
+                  ) : (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-6">
+                      No tasks to show. Add a new task above!
+                    </p>
+                  )}
+                </ul>
+              </div>
             </div>
           </main>
         )}
