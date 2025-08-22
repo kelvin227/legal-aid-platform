@@ -13,10 +13,7 @@ export default async function LegalAidPlatform() {
     },
   });
   if (!fetchuser) {
-    return <div>
-      User not found
-      <Button onClick={() => LogOut()}>Logout</Button>
-      </div>;
+    return LogOut();
   }
 
   ///fetch the count of active case for the user
