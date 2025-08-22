@@ -1,8 +1,7 @@
 import { auth } from "@/auth";
 import DashboardComp from "../../../components/userPage";
 import { prisma } from "@/lib/db";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "@/actions/authactions";
+import AppButton from "@/components/destroy";
 
 export default async function LegalAidPlatform() {
   const session = await auth();
@@ -13,7 +12,7 @@ export default async function LegalAidPlatform() {
     },
   });
   if (!fetchuser) {
-    return LogOut();
+    return <AppButton />
   }
 
   ///fetch the count of active case for the user
