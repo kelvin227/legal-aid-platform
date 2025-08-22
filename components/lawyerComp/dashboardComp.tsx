@@ -327,7 +327,7 @@ const App = ({
               },
               {
                 name: "Tasks",
-                href: "/tasks",
+                href: "/task",
                 icon: <ClipboardList size={20} className="mr-3" />,
               },
             ].map((item) => (
