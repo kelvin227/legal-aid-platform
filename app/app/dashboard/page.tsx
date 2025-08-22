@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import DashboardComp from "../../../components/userPage";
 import { prisma } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "@/actions/authactions";
 
 export default async function LegalAidPlatform() {
   const session = await auth();
@@ -11,7 +13,10 @@ export default async function LegalAidPlatform() {
     },
   });
   if (!fetchuser) {
-    return <div>User not found</div>;
+    return <div>
+      User not found
+      <Button onClick={() => LogOut()}>Logout</Button>
+      </div>;
   }
 
   ///fetch the count of active case for the user
