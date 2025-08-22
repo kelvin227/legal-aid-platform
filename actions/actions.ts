@@ -31,7 +31,7 @@ export async function CreateCaseAction(
         caseNumber,
         caseType,
         userId,
-        status: "active",
+        status: "open",
     }
   })
   if (!uploadcase) {

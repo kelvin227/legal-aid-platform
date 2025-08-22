@@ -83,6 +83,7 @@ const DashboardComp = ({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState<any | null>(null);
+  const [caseNumber, setCaseNumber] = useState<string>("");
 
   /** When user clicks "View Applicant" from the list, open CaseDetails directly on Applicants view */
   const [openApplicantsOnLoad, setOpenApplicantsOnLoad] = useState(false);
@@ -99,6 +100,7 @@ const DashboardComp = ({
     text: string;
     type: "success" | "error" | null;
   }>({ text: "", type: null });
+  let filteredData = getapplicant.filter((item) => item.caseNumber === caseNumber);
 
   // Helper to safely format date-like values (Date instance or ISO/string)
   const formatDate = (d: any) => {
@@ -219,7 +221,7 @@ const DashboardComp = ({
         </Button>
 
         <h3 className="text-lg font-semibold">Applicants</h3>
-        {getapplicant.map((applicant) => (
+        {filteredData.map((applicant) => (
           <Card key={applicant.id} className="rounded-lg shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
@@ -417,7 +419,7 @@ const DashboardComp = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-gray-600 dark:text-gray-400">Lawyer:</p>
-                <p className="font-medium">{case_.laywer.fullName}</p>
+                <p className="font-medium">{case_.laywer?.fullName || "Not assigned"}</p>
               </div>
               <div>
                 <p className="text-gray-600 dark:text-gray-400">
@@ -438,7 +440,9 @@ const DashboardComp = ({
                 <Button
                   size="sm"
                   className="flex-1 rounded-lg"
-                  onClick={() => setView("applicants")}
+                  onClick={() => {setView("applicants")
+                    setCaseNumber(case_.caseNumber as string)}
+                  }
                 >
                   <MessageCircle className="h-4 w-4 mr-1" />
                   View Applicant
@@ -964,7 +968,7 @@ const DashboardComp = ({
                               <span className="text-gray-600 dark:text-gray-400">
                                 Lawyer:
                               </span>
-                              <span>{case_.laywer.fullName}</span>
+                              <span>{case_.laywer?.fullName ? null : case_.laywer?.fullName}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600 dark:text-gray-400">
